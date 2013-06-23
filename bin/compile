@@ -51,7 +51,7 @@ else
   RLWRAP=yes
 fi
 
-LEIN_CLJSBUILD_TASK=${LEIN_BUILD_TASK:-"cljsbuild once"}
+LEIN_CLJSBUILD_TASK=${LEIN_CLJSBUILD_TASK:-"cljsbuild once"}
 
 # install leiningen jar
 LEIN_JAR_URL="https://heroku-buildpack-clojure.s3.amazonaws.com/leiningen-$LEIN_VERSION-standalone.jar"
