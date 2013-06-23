@@ -51,6 +51,8 @@ else
   RLWRAP=yes
 fi
 
+LEIN_CLJSBUILD_TASK=${LEIN_BUILD_TASK:-"cljsbuild once"}
+
 # install leiningen jar
 LEIN_JAR_URL="https://heroku-buildpack-clojure.s3.amazonaws.com/leiningen-$LEIN_VERSION-standalone.jar"
 LEIN_JAR_PATH="$CACHE_DIR/leiningen-$LEIN_VERSION-standalone.jar"
@@ -119,6 +121,26 @@ echo "       Running: $BUILD_COMMAND"
 cd $BUILD_DIR
 PATH=.lein/bin:$PATH LEIN_JVM_OPTS="-Xmx500m -Duser.home=$BUILD_DIR" \
   $BUILD_COMMAND 2>&1 | sed -u 's/^/       /'
+if [ "${PIPESTATUS[*]}" != "0 0" ]; then
+  echo " !     Failed to build."
+  exit 1
+fi
+
+# Calculate ClojureScript build command
+if [ "$CLJSBUILD_COMMAND" = "" ]; then
+    if [ -x $BUILD_DIR/bin/cljsbuild ]; then
+        echo "       Found bin/cljsbuild; running it instead of default lein invocation."
+        CLJSBUILD_COMMAND=bin/cljsbuild
+    else
+        CLJSBUILD_COMMAND="lein $LEIN_CLJSBUILD_TASK"
+    fi
+fi
+
+echo "       Running: $CLJSBUILD_COMMAND"
+
+cd $BUILD_DIR
+PATH=.lein/bin:$PATH LEIN_JVM_OPTS="-Xmx500m -Duser.home=$BUILD_DIR" \
+  $CLJSBUILD_COMMAND 2>&1 | sed -u 's/^/       /'
 if [ "${PIPESTATUS[*]}" != "0 0" ]; then
   echo " !     Failed to build."
   exit 1
